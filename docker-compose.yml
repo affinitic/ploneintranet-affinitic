@@ -1,0 +1,71 @@
+version: '3.4'
+services:
+  zeo:
+    image: docker-prod.affinitic.be/affiniticintranet:latest
+    user: plone
+    volumes:
+      - ./data:/plone/var
+      - ./src:/plone/src
+    working_dir: /plone
+    command: /plone/bin/zeo fg
+  solr:
+    image: docker-prod.affinitic.be/affiniticintranet:latest
+    user: plone
+    working_dir: /plone
+    command: /plone/bin/solr-instance fg
+  redis:
+    image: redis
+  celery:
+    image: docker-prod.affinitic.be/affiniticintranet:latest
+    user: plone
+    working_dir: /plone
+    command: /plone/bin/celery -A ploneintranet.async.celerytasks worker --broker=redis://redis:6379/0
+    depends_on:
+      - redis
+    environment:
+      - BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+  flower:
+    image: docker-prod.affinitic.be/affiniticintranet:latest
+    user: plone
+    working_dir: /plone
+    command: /plone/bin/celery -A ploneintranet.async.celerytasks flower --broker=redis://redis:6379/0
+    depends_on:
+      - celery
+    environment:
+      - BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+  instance1:
+    image: docker-prod.affinitic.be/affiniticintranet:latest
+    user: plone
+    ports:
+      - '15081:8080'
+    volumes:
+      - ./data:/plone/var
+    working_dir: /plone
+    command: /plone/bin/instance1 console
+    depends_on:
+      - celery
+      - flower
+      - solr
+      - zeo
+    environment:
+      - BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+  instance2:
+    image: docker-prod.affinitic.be/affiniticintranet:latest
+    user: plone
+    ports:
+      - '15082:8080'
+    volumes:
+      - ./data:/plone/var
+    working_dir: /plone
+    command: /plone/bin/instance2 console
+    depends_on:
+      - celery
+      - flower
+      - solr
+      - zeo
+    environment:
+      - BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
