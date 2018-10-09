@@ -8,9 +8,9 @@ RUN cd /plone \
     && bin/buildout -c buildout.cfg \
     && find /plone \( -type f -a -name '*.pyc' -o -name '*.pyo' \) -exec rm -rf '{}' + \
     && chown -R plone:plone /plone
-# RUN apt-get remove -y gcc python-dev \
-#     && apt-get autoremove -y \
-#     && apt-get clean
+RUN apt-get remove -y gcc python-dev \
+    && apt-get autoremove -y \
+    && apt-get clean
 
 USER plone
 VOLUME /plone/var
