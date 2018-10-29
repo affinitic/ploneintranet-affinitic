@@ -50,10 +50,12 @@ services:
       - flower
       - solr
       - zeo
+      - mailserver
     environment:
       - BROKER_URL=redis://redis:6379/0
       - CELERY_RESULT_BACKEND=redis://redis:6379/0
   mailserver:
-    image: docker-prod.affinitic.be/affiniticintranet:latest
-    user: root
-    command: python -m smtpd -n -c DebuggingServer localhost:25
+    image: python:latest
+    command: python -u -m smtpd -n -c DebuggingServer 0.0.0.0:25
+    expose:
+      - "25"
